@@ -4,6 +4,7 @@ import com.library.library_management_system.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -42,6 +43,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/books").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("LIBRARIAN")
+
+                        .requestMatchers("/api/users/**").hasRole("LIBRARIAN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/borrow").hasAnyRole("PATRON", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.PUT, "/api/borrow/return/**").hasAnyRole("PATRON", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/api/borrow/history/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/borrow/history/user/**").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/api/borrow/history/all").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/api/borrow/overdue").hasRole("LIBRARIAN")
                         .anyRequest().authenticated()
                 );
 

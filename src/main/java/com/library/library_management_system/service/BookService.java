@@ -94,6 +94,10 @@ public class BookService {
         if (StringUtils.hasText(request.getGenre())) book.setGenre(request.getGenre());
 
         if (request.getTotalCopies() != null) {
+            if (request.getTotalCopies() < 0) {
+                throw new IllegalArgumentException("Total copies cannot be negative.");
+            }
+
             int currentBorrowedCopies = book.getTotalCopies() - book.getAvailableCopies();
             if (request.getTotalCopies() < currentBorrowedCopies) {
                 throw new IllegalStateException("Total copies cannot be less than the number of currently borrowed copies (" + currentBorrowedCopies + ").");

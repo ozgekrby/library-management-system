@@ -37,6 +37,9 @@ public class BorrowingRecord {
 
     private LocalDate returnDate;
 
+    @OneToOne(mappedBy = "borrowingRecord", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Fine fine;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

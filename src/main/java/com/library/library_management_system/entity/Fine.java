@@ -19,7 +19,7 @@ public class Fine {
     private Long id;
 
     @NotNull
-    @OneToOne
+    @OneToOne(optional = false, orphanRemoval = true)
     @JoinColumn(name = "borrowing_record_id", nullable = false, unique = true)
     private BorrowingRecord borrowingRecord;
 

@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: library_management_system_app
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=aeeaf880aa03d9052d46767b4ddf58d6cea55cc41dc2531bb0ec4717fc1b53b94ce4092f4690d632b4c3c0208dbb89df647b4987e45801dfad81b4e4d143110d
+      - LIBRARY_RESERVATION_HOLD_DURATION_HOURS=24
+      - SPRING_APPLICATION_NAME=library-management-system
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/librarydb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1124
+      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=org.postgresql.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - JWT_EXPIRATION_MS=86400000
+      - SPRINGDOC_SWAGGER_UI_PATH=/swagger-ui.html
+      - SPRINGDOC_API_DOCS_PATH=/v3/api-docs
+      - SPRINGDOC_API_DOCS_ENABLED=true
+      - SPRINGDOC_SWAGGER_UI_ENABLED=true
+      - LOGGING_LEVEL_COM_LIBRARY_LIBRARY_MANAGEMENT_SYSTEM=INFO
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=INFO
+      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=DEBUG
+      - LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER=TRACE
+      - LIBRARY_FINE_AMOUNT_PER_DAY=1.00
+      - LIBRARY_FINE_GRACE_PERIOD_DAYS=0
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - library-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: library_management_system_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=librarydb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1124
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d librarydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  test:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: library_management_system_tests
+    working_dir: /app
+    volumes:
+      - .:/app
+      - maven_cache:/root/.m2
+    environment:
+      - JWT_SECRET=aeeaf880aa03d9052d46767b4ddf58d6cea55cc41dc2531bb0ec4717fc1b53b94ce4092f4690d632b4c3c0208dbb89df647b4987e45801dfad81b4e4d143110d
+      - LIBRARY_RESERVATION_HOLD_DURATION_HOURS=24
+      - SPRING_PROFILES_ACTIVE=test
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.H2Dialect
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.H2Dialect
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
+      - SPRING_JPA_SHOW_SQL=false
+      - JWT_EXPIRATION_MS=60000
+    command: >
+      sh -c "mvn test"
+    networks:
+      - library-network
+volumes:
+  postgres_data:
+  maven_cache:
+
+networks:
+  library-network:
+    driver: bridge

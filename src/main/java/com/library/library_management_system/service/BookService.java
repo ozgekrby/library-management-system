@@ -20,7 +20,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -122,6 +124,39 @@ public class BookService {
         }
         bookRepository.delete(book);
         log.info("Book deleted with id: {}", id);
+    }
+
+    public Flux<BookResponse> searchBooksReactive(String title, String author, String isbn, String genre) {
+        Specification<Book> spec = createBookSpecification(title, author, isbn, genre);
+
+        return Flux.defer(() -> Flux.fromIterable(bookRepository.findAll(spec)))
+                .subscribeOn(Schedulers.boundedElastic())
+                .map(this::mapToBookResponse);
+    }
+
+    public Mono<BookResponse> getBookByIdReactive(Long id) {
+        return Mono.fromCallable(() -> bookRepository.findById(id))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(optionalBook -> optionalBook.map(this::mapToBookResponse).map(Mono::just).orElseGet(Mono::empty));
+    }
+
+    private Specification<Book> createBookSpecification(String title, String author, String isbn, String genre) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.hasText(title)) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
+            }
+            if (StringUtils.hasText(author)) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("author")), "%" + author.toLowerCase() + "%"));
+            }
+            if (StringUtils.hasText(isbn)) {
+                predicates.add(criteriaBuilder.equal(root.get("isbn"), isbn));
+            }
+            if (StringUtils.hasText(genre)) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("genre")), "%" + genre.toLowerCase() + "%"));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     private BookResponse mapToBookResponse(Book book) {

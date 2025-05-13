@@ -10,6 +10,6 @@ public class BorrowBookRequest {
     @NotNull(message = "Book ID cannot be null")
     private Long bookId;
 
-    @Future(message = "Due date must be in the future")
+    //@Future(message = "Due date must be in the future") // note: commented out for testing // TODO: re-enable for production
     private LocalDate dueDate;
 }

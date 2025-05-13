@@ -49,7 +49,7 @@ public class Book {
     @Column(columnDefinition = "integer default 0")
     private Integer availableCopies;
 
-    @OneToMany(mappedBy = "book")
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<BorrowingRecord> borrowingRecords;
 
     @PrePersist

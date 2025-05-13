@@ -31,6 +31,7 @@ public class FineService {
     @Value("${library.fine.grace-period-days:0}")
     private int gracePeriodDays;
 
+    //Creates or updates a fine for an overdue returned book.
     @Transactional
     public FineResponse createOrUpdateFineForOverdueBook(BorrowingRecord borrowingRecord) {
         if (borrowingRecord.getReturnDate() == null) {
@@ -88,6 +89,7 @@ public class FineService {
         return mapToFineResponse(savedFine);
     }
 
+    //Marks a fine as paid.
     @Transactional
     public FineResponse payFine(Long fineId) {
         Fine fine = fineRepository.findById(fineId)
@@ -103,7 +105,7 @@ public class FineService {
         log.info("Fine with id {} marked as PAID for user {}", paidFine.getId(), paidFine.getUser().getUsername());
         return mapToFineResponse(paidFine);
     }
-
+    //Waives (forgives) a fine if it is still pending.
     @Transactional
     public FineResponse waiveFine(Long fineId) {
         Fine fine = fineRepository.findById(fineId)
@@ -124,6 +126,7 @@ public class FineService {
         return mapToFineResponse(waivedFine);
     }
 
+    //Retrieves all fines for a specific user.
     @Transactional(readOnly = true)
     public List<FineResponse> getFinesForUser(Long userId) {
         User user = userRepository.findById(userId)
@@ -133,6 +136,7 @@ public class FineService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves all fines for a specific user by fine status.
     @Transactional(readOnly = true)
     public List<FineResponse> getFinesForUserByStatus(Long userId, FineStatus status) {
         User user = userRepository.findById(userId)
@@ -142,6 +146,7 @@ public class FineService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves all fines in the system with a specific status.
     @Transactional(readOnly = true)
     public List<FineResponse> getAllFinesByStatus(FineStatus status) {
         return fineRepository.findByStatus(status).stream()
@@ -149,6 +154,7 @@ public class FineService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves all fines in the system regardless of their status.
     @Transactional(readOnly = true)
     public List<FineResponse> getAllFines() {
         return fineRepository.findAll().stream()
@@ -156,7 +162,7 @@ public class FineService {
                 .collect(Collectors.toList());
     }
 
-
+    //Maps a Fine entity to a FineResponse DTO.
     private FineResponse mapToFineResponse(Fine fine) {
         return FineResponse.builder()
                 .id(fine.getId())

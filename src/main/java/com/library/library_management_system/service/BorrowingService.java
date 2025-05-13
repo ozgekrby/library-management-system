@@ -31,6 +31,7 @@ public class BorrowingService {
     private final UserRepository userRepository;
     private final FineService fineService;
 
+    //Allows a user to borrow a book.
     @Transactional
     public BorrowingRecordResponse borrowBook(BorrowBookRequest borrowRequest, User currentUser) {
         Book bookToBorrow = bookRepository.findById(borrowRequest.getBookId())
@@ -59,6 +60,7 @@ public class BorrowingService {
         return mapToBorrowingRecordResponse(savedRecord);
     }
 
+    //Allows a user to return a borrowed book.
     @Transactional
     public BorrowingRecordResponse returnBook(Long borrowingRecordId, User currentUser) {
         BorrowingRecord recordToReturn = borrowingRecordRepository.findByIdAndUserAndReturnDateIsNull(borrowingRecordId, currentUser)
@@ -67,7 +69,7 @@ public class BorrowingService {
                 ));
         return processReturn(recordToReturn);
     }
-
+    //Allows a librarian to return a book.
     @Transactional
     public BorrowingRecordResponse returnBookByLibrarian(Long borrowingRecordId) {
         BorrowingRecord recordToReturn = borrowingRecordRepository.findByIdAndReturnDateIsNull(borrowingRecordId)
@@ -77,6 +79,7 @@ public class BorrowingService {
         return processReturn(recordToReturn);
     }
 
+    //Handles the common logic for returning a book.
     @Transactional
     private BorrowingRecordResponse processReturn(BorrowingRecord recordToReturn) {
         if (recordToReturn.getReturnDate() != null) {
@@ -105,7 +108,7 @@ public class BorrowingService {
         return mapToBorrowingRecordResponse(updatedRecord);
     }
 
-
+    //Retrieves the borrowing history for a specific user.
     @Transactional(readOnly = true)
     public List<BorrowingRecordResponse> getUserBorrowingHistory(User user) {
         return borrowingRecordRepository.findByUserOrderByBorrowDateDesc(user).stream()
@@ -113,6 +116,7 @@ public class BorrowingService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves the borrowing history for a user (by librarian).
     @Transactional(readOnly = true)
     public List<BorrowingRecordResponse> getBorrowingHistoryForUserByLibrarian(Long userId) {
         User user = userRepository.findById(userId)
@@ -120,7 +124,7 @@ public class BorrowingService {
         return getUserBorrowingHistory(user);
     }
 
-
+    //Retrieves all borrowing history records.
     @Transactional(readOnly = true)
     public List<BorrowingRecordResponse> getAllBorrowingHistory() {
         return borrowingRecordRepository.findAll(Sort.by(Sort.Direction.DESC, "borrowDate")).stream()
@@ -128,6 +132,7 @@ public class BorrowingService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves all overdue borrowing records (books not returned in time).
     @Transactional(readOnly = true)
     public List<BorrowingRecordResponse> getOverdueBooks() {
         return borrowingRecordRepository.findByReturnDateIsNullAndDueDateBefore(LocalDate.now()).stream()
@@ -135,7 +140,7 @@ public class BorrowingService {
                 .collect(Collectors.toList());
     }
 
-
+    //Maps a BorrowingRecord entity to its response DTO.
     private BorrowingRecordResponse mapToBorrowingRecordResponse(BorrowingRecord record) {
         return BorrowingRecordResponse.builder()
                 .id(record.getId())

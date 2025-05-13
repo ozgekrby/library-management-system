@@ -20,11 +20,13 @@ public class ReportService {
     private final BorrowingRecordRepository borrowingRecordRepository;
     private final UserRepository userRepository;
 
+    //Retrieves a paginated report of the most frequently borrowed books.
     public Page<TopBorrowedBookResponse> getTopBorrowedBooks(Pageable pageable) {
         log.info("Fetching top borrowed books report with pageable: {}", pageable);
         return borrowingRecordRepository.findTopBorrowedBooks(pageable);
     }
 
+    //Retrieves a paginated report of user activity including total and active borrowings.
     public Page<UserActivityReportResponse> getUserActivityReport(Pageable pageable) {
         log.info("Fetching user activity report with pageable: {}", pageable);
         return userRepository.findAll(pageable).map(user -> {

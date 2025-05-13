@@ -31,6 +31,7 @@ public class ReservationService {
     @Value("${app.reservation.hold-duration-hours:48}")
     private int reservationHoldDurationHours;
 
+    //Creates a new reservation for a book if no copies are available and the user hasn't already reserved it.
     @Transactional
     public ReservationResponse createReservation(CreateReservationRequest request, User currentUser) {
         Book book = bookRepository.findById(request.getBookId())
@@ -61,7 +62,7 @@ public class ReservationService {
         log.info("Reservation created for book '{}' by user '{}'", book.getTitle(), currentUser.getUsername());
         return mapToReservationResponse(savedReservation);
     }
-
+    //Cancels a reservation by ID if it belongs to the user or if the user is a librarian.
     @Transactional
     public void cancelReservation(Long reservationId, User currentUser) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -87,6 +88,7 @@ public class ReservationService {
         }
     }
 
+    //Retrieves all active (PENDING or AVAILABLE) reservations for the current user.
     @Transactional(readOnly = true)
     public List<ReservationResponse> getMyActiveReservations(User currentUser) {
         List<ReservationStatus> activeStatuses = Arrays.asList(ReservationStatus.PENDING, ReservationStatus.AVAILABLE);
@@ -96,6 +98,7 @@ public class ReservationService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves all PENDING reservations for a specific book.
     @Transactional(readOnly = true)
     public List<ReservationResponse> getReservationsForBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
@@ -106,6 +109,7 @@ public class ReservationService {
                 .collect(Collectors.toList());
     }
 
+    //Retrieves all system-wide PENDING and AVAILABLE reservations.
     @Transactional(readOnly = true)
     public List<ReservationResponse> getAllPendingReservations() {
         return reservationRepository.findAll().stream()
@@ -114,6 +118,7 @@ public class ReservationService {
                 .collect(Collectors.toList());
     }
 
+    //Promotes the next pending reservation (if any) for a book to AVAILABLE status.
     @Transactional
     public void processNextReservationForBook(Book book) {
         reservationRepository.findFirstByBookAndStatusOrderByReservationDateTimeAsc(book, ReservationStatus.PENDING)
@@ -126,6 +131,7 @@ public class ReservationService {
                 });
     }
 
+    //Marks a reservation as FULFILLED when the reserved book is successfully borrowed.
     @Transactional
     public void fulfillReservation(Book book, User user) {
         reservationRepository.findByUserAndBookAndStatusIn(user, book, List.of(ReservationStatus.AVAILABLE))
@@ -137,7 +143,7 @@ public class ReservationService {
                             reservation.getId(), book.getTitle(), user.getUsername());
                 });
     }
-
+    //Expires AVAILABLE reservations that passed their expiration time and processes the next reservation in the queue for the affected book.
     @Transactional
     public void expireReservations() {
         List<Reservation> availableReservations = reservationRepository.findAll().stream()
@@ -153,7 +159,7 @@ public class ReservationService {
         }
     }
 
-
+    //Maps a Reservation entity to a ReservationResponse DTO.
     private ReservationResponse mapToReservationResponse(Reservation reservation) {
         return ReservationResponse.builder()
                 .id(reservation.getId())

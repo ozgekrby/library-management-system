@@ -31,6 +31,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final BorrowingRecordRepository borrowingRecordRepository;
 
+    // Adds a new book to the library system
     @Transactional
     public BookResponse addBook(CreateBookRequest request) {
         if (bookRepository.existsByIsbn(request.getIsbn())) {
@@ -51,6 +52,7 @@ public class BookService {
         return mapToBookResponse(savedBook);
     }
 
+    // Retrieves a book by its ID
     @Transactional(readOnly = true)
     public BookResponse getBookById(Long id) {
         Book book = bookRepository.findById(id)
@@ -58,6 +60,7 @@ public class BookService {
         return mapToBookResponse(book);
     }
 
+    // Search for books based on title, author, ISBN, and genre
     @Transactional(readOnly = true)
     public Page<BookResponse> searchBooks(String title, String author, String isbn, String genre, Pageable pageable) {
         Specification<Book> spec = (root, query, criteriaBuilder) -> {
@@ -79,7 +82,7 @@ public class BookService {
         return bookRepository.findAll(spec, pageable).map(this::mapToBookResponse);
     }
 
-
+    // Updates an existing book's information
     @Transactional
     public BookResponse updateBook(Long id, UpdateBookRequest request) {
         Book book = bookRepository.findById(id)
@@ -114,6 +117,7 @@ public class BookService {
         return mapToBookResponse(updatedBook);
     }
 
+    // Deletes a book from the library system
     @Transactional
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
@@ -126,6 +130,7 @@ public class BookService {
         log.info("Book deleted with id: {}", id);
     }
 
+    // Reactive search for books
     public Flux<BookResponse> searchBooksReactive(String title, String author, String isbn, String genre) {
         Specification<Book> spec = createBookSpecification(title, author, isbn, genre);
 
@@ -134,12 +139,14 @@ public class BookService {
                 .map(this::mapToBookResponse);
     }
 
+    // Reactive method to get a book by ID
     public Mono<BookResponse> getBookByIdReactive(Long id) {
         return Mono.fromCallable(() -> bookRepository.findById(id))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(optionalBook -> optionalBook.map(this::mapToBookResponse).map(Mono::just).orElseGet(Mono::empty));
     }
 
+    // Creates a Specification for dynamic searching of books
     private Specification<Book> createBookSpecification(String title, String author, String isbn, String genre) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -159,6 +166,7 @@ public class BookService {
         };
     }
 
+    // Maps a Book entity to a BookResponse DTO
     private BookResponse mapToBookResponse(Book book) {
         return BookResponse.builder()
                 .id(book.getId())

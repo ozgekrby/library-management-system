@@ -27,6 +27,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final BorrowingRecordRepository borrowingRecordRepository;
 
+    //Retrieves a user by their ID.
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
@@ -34,11 +35,13 @@ public class UserService {
         return mapToUserResponse(user);
     }
 
+    //Retrieves a paginated list of all users.
     @Transactional(readOnly = true)
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::mapToUserResponse);
     }
 
+    //Updates an existing user’s information.
     @Transactional
     public UserResponse updateUser(Long userId, UpdateUserRequest updateUserRequest) {
         User userToUpdate = userRepository.findById(userId)
@@ -79,6 +82,7 @@ public class UserService {
         return mapToUserResponse(updatedUser);
     }
 
+    //Deletes a user if they have no active borrowed books.
     @Transactional
     public void deleteUser(Long userId) {
         User userToDelete = userRepository.findById(userId)
@@ -92,6 +96,7 @@ public class UserService {
         log.info("User deleted with id: {}", userId);
     }
 
+    //Maps a User entity to a UserResponse DTO.
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())

@@ -29,6 +29,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
 
+    // Registers a new user
     @Transactional
     public UserResponse registerUser(RegisterUserRequest registerRequest) {
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
@@ -58,6 +59,7 @@ public class AuthService {
                 .build();
     }
 
+    // Handles user login
     public AuthResponse loginUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

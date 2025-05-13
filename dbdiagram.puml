@@ -1,0 +1,92 @@
+@startuml
+!theme plain
+
+hide empty members
+skinparam classAttributeIconSize 0
+
+entity Book {
+  + Long id (PK)
+  + String title
+  + String author
+  + String isbn (UK)
+  + LocalDate publicationDate
+  + String genre
+  + Integer totalCopies
+  + Integer availableCopies
+}
+
+entity BorrowingRecord {
+  + Long id (PK)
+  + LocalDate borrowDate
+  + LocalDate dueDate
+  + LocalDate returnDate
+  --
+  + Long book_id (FK)
+  + Long user_id (FK)
+}
+
+entity Fine {
+  + Long id (PK)
+  + BigDecimal amount
+  + LocalDate issueDate
+  + LocalDate paidDate
+  + FineStatus status
+  --
+  + Long borrowing_record_id (FK, UK)
+  + Long user_id (FK)
+}
+
+enum FineStatus {
+  PENDING
+  PAID
+  WAIVED
+}
+
+entity Reservation {
+  + Long id (PK)
+  + LocalDateTime reservationDateTime
+  + ReservationStatus status
+  + LocalDateTime expirationDateTime
+  --
+  + Long book_id (FK)
+  + Long user_id (FK)
+}
+
+enum ReservationStatus {
+  PENDING
+  AVAILABLE
+  FULFILLED
+  CANCELED
+  EXPIRED
+}
+
+entity User {
+  + Long id (PK)
+  + String username (UK)
+  + String password
+  + String email (UK)
+  + String fullName
+  + Role role
+}
+
+enum Role {
+  PATRON
+  LIBRARIAN
+}
+
+
+Book "1" -- "0..*" BorrowingRecord : has
+Book "1" -- "0..*" Reservation : can be reserved via
+
+User "1" -- "0..*" BorrowingRecord : makes
+User "1" -- "0..*" Fine : receives
+User "1" -- "0..*" Reservation : makes
+
+BorrowingRecord "1" -- "0..1" Fine : may result in >
+
+
+Fine --|> FineStatus
+Reservation --|> ReservationStatus
+User --|> Role
+
+@enduml

@@ -1,0 +1,1629 @@
+{
+	"info": {
+		"_postman_id": "b029e733-55fc-418f-a6f3-01aa167ad9ee",
+		"name": "Library Management System - Full Flow API",
+		"description": "Covers user registration, login, book management, borrowing, returning, fines, reservations, and reports with distinct user roles and specific book scenarios.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37879624",
+		"_collection_link": "https://trinity-4516.postman.co/workspace/getir_library~48f8072c-9ce5-4590-8c90-e878d98f8cfe/collection/37879624-b029e733-55fc-418f-a6f3-01aa167ad9ee?action=share&source=collection_link&creator=37879624"
+	},
+	"item": [
+		{
+			"name": "0. Setup and Authentication",
+			"item": [
+				{
+					"name": "Register Librarian",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"librarian_id\", response.id);",
+									"console.log(\"Librarian ID set to: \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{librarian_username}}\",\n    \"password\": \"{{librarian_password}}\",\n    \"email\": \"{{librarian_email}}\",\n    \"fullName\": \"{{librarian_fullname}}\",\n    \"role\": \"LIBRARIAN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Patron",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"patron_id\", response.id);",
+									"console.log(\"Patron ID set to: \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{patron_username}}\",\n    \"password\": \"{{patron_password}}\",\n    \"email\": \"{{patron_email}}\",\n    \"fullName\": \"{{patron_fullname}}\",\n    \"role\": \"PATRON\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Librarian",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"librarian_token\", response.accessToken);",
+									"console.log(\"Librarian token set.\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{librarian_username}}\",\n    \"password\": \"{{librarian_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Patron",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"patron_token\", response.accessToken);",
+									"console.log(\"Patron token set.\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{patron_username}}\",\n    \"password\": \"{{patron_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "User registration and login for both roles."
+		},
+		{
+			"name": "1. Librarian Actions - Book Setup & Management",
+			"item": [
+				{
+					"name": "LIBRARIAN - Add Book for Borrowing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"book_to_borrow_id\", response.id);",
+									"console.log(\"Book for Borrowing ID: \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book_to_borrow_title}}\",\n    \"author\": \"Author Test\",\n    \"isbn\": \"{{generic_isbn_prefix}}000001\",\n    \"publicationDate\": \"2023-01-01\",\n    \"genre\": \"Fiction\",\n    \"totalCopies\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/books",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Add Book for Fine Scenario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"book_to_fine_id\", response.id);",
+									"console.log(\"Book for Fine ID: \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book_to_fine_title}}\",\n    \"author\": \"Author Penalty\",\n    \"isbn\": \"{{generic_isbn_prefix}}000002\",\n    \"publicationDate\": \"2023-02-01\",\n    \"genre\": \"Non-Fiction\",\n    \"totalCopies\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/books",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Add Book for Deletion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"book_to_delete_id\", response.id);",
+									"console.log(\"Book for Deletion ID: \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book_to_delete_title}}\",\n    \"author\": \"Author Disposable\",\n    \"isbn\": \"{{generic_isbn_prefix}}000003\",\n    \"publicationDate\": \"2023-03-01\",\n    \"genre\": \"Mystery\",\n    \"totalCopies\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/books",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Add Book for Reservation (and make unavailable by borrowing all copies)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"book_for_reservation_id\", response.id);",
+									"console.log(\"Book for Reservation ID (initially available): \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{book_for_reservation_title}}\",\n    \"author\": \"Author Reserved\",\n    \"isbn\": \"{{generic_isbn_prefix}}000004\",\n    \"publicationDate\": \"2023-04-01\",\n    \"genre\": \"Sci-Fi\",\n    \"totalCopies\": 1 \n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/books",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							]
+						},
+						"description": "Librarian adds a book with 1 copy. Next step will be borrowing it to make it unavailable for reservation test."
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Borrow 'Book for Reservation' (to make it unavailable)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookId\": {{book_for_reservation_id}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow"
+							]
+						},
+						"description": "Librarian borrows the only copy of 'Book for Reservation' to make its availableCopies = 0, so Patron can reserve it."
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get All Users (with Pagination)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users?page=0&size=5&sort=username,asc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								},
+								{
+									"key": "sort",
+									"value": "username,asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Update Patron User Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"{{patron_fullname}} Updated\",\n    \"email\": \"updated.{{patron_email}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{patron_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{patron_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUBLIC - Search Books (with Pagination and Filters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/books?title=Book&author=Author&genre=Fiction&page=0&size=3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "Book",
+									"description": "Partial title match"
+								},
+								{
+									"key": "author",
+									"value": "Author",
+									"description": "Partial author match"
+								},
+								{
+									"key": "genre",
+									"value": "Fiction",
+									"description": "Partial genre match"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Librarian adds books and manages users/books."
+		},
+		{
+			"name": "2. Patron Actions",
+			"item": [
+				{
+					"name": "PATRON - Borrow 'Book for Borrowing'",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"borrowing_record_id_borrow\", response.id);",
+									"console.log(\"Borrowing Record ID (for borrow_book): \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookId\": {{book_to_borrow_id}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Create Reservation for 'Book for Reservation'",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"reservation_id\", response.id);",
+									"console.log(\"Reservation ID: \" + response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookId\": {{book_for_reservation_id}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reservations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reservations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Get My Borrowing History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow/history/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow",
+								"history",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Get My Fines",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/fines/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fines",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Get My Active Reservations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservations/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Cancel My Reservation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservations/{{reservation_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"{{reservation_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Fine Scenario & Borrowing Management (Librarian)",
+			"item": [
+				{
+					"name": "PATRON - Borrow 'Book for Fine'",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.collectionVariables.set(\"borrowing_record_id_fine\", response.id);",
+									"console.log(\"Borrowing Record ID (for fine_book): \" + response.id);",
+									"",
+									"let yesterday = new Date();",
+									"yesterday.setDate(yesterday.getDate() - 3);",
+									"let year = yesterday.getFullYear();",
+									"let month = ('0' + (yesterday.getMonth() + 1)).slice(-2);",
+									"let day = ('0' + yesterday.getDate()).slice(-2);",
+									"pm.collectionVariables.set(\"fine_book_due_date_past\", year + '-' + month + '-' + day);",
+									"console.log(\"Fine book due date set to past: \" + pm.collectionVariables.get(\"fine_book_due_date_past\"));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookId\": {{book_to_fine_id}},\n    \"userId\": {{patron_id}}, \n    \"dueDate\": \"{{fine_book_due_date_past}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow"
+							]
+						},
+						"description": "Librarian borrows a book to the patron with a due date in the past to trigger a fine upon return. Note: Your API needs to support librarian borrowing for a patron and setting a custom due date."
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Return 'Book for Fine' (Simulate Late Return)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow/return/{{borrowing_record_id_fine}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow",
+								"return",
+								"{{borrowing_record_id_fine}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get Fines for Patron (to find the new fine ID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const fines = pm.response.json();",
+									"if (fines && fines.length > 0) {",
+									"    const targetBorrowingRecordId = parseInt(pm.collectionVariables.get(\"borrowing_record_id_fine\"));",
+									"    const newFine = fines.find(f => f.borrowingRecordId === targetBorrowingRecordId && f.status === 'PENDING');",
+									"    if (newFine) {",
+									"        pm.collectionVariables.set(\"fine_id_for_book_fine\", newFine.id);",
+									"        console.log(\"Fine ID for book_to_fine set to: \" + newFine.id);",
+									"    } else {",
+									"        console.warn(\"Could not find a PENDING fine for borrowing record ID: \" + targetBorrowingRecordId + \". Fine might not have been generated or already processed.\");",
+									"    }",
+									"} else {",
+									"   console.warn(\"No fines found for patron or fine was not generated as PENDING.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/fines/user/{{patron_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fines",
+								"user",
+								"{{patron_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Pay Fine for 'Book for Fine'",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/fines/{{fine_id_for_book_fine}}/pay",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fines",
+								"{{fine_id_for_book_fine}}",
+								"pay"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Waive Another Fine (Create one first if needed)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/fines/{{fine_id_for_book_fine}}/waive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fines",
+								"{{fine_id_for_book_fine}}",
+								"waive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATRON - Return 'Book for Borrowing'",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{patron_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow/return/{{borrowing_record_id_borrow}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow",
+								"return",
+								"{{borrowing_record_id_borrow}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get Overdue Books",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow/overdue",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow",
+								"overdue"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get Borrowing History for Patron",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow/history/user/{{patron_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow",
+								"history",
+								"user",
+								"{{patron_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get All Borrowing History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/borrow/history/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"borrow",
+								"history",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get Pending Fines",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/fines/pending",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fines",
+								"pending"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get All Fines",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/fines/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fines",
+								"all"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Reservation Flow (Librarian & Patron)",
+			"item": [
+				{
+					"name": "LIBRARIAN - Get PENDING Reservations for 'Book for Reservation'",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservations/book/{{book_for_reservation_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"book",
+								"{{book_for_reservation_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get All Active Reservations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservations/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Manually Trigger Expire Reservations Check",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reservations/expire-check",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"expire-check"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Reports (Librarian)",
+			"item": [
+				{
+					"name": "LIBRARIAN - Get Top Borrowed Books Report",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/top-borrowed-books?size=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"top-borrowed-books"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Get User Activity Report",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/user-activity?size=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"user-activity"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Reactive Book Search (Public)",
+			"item": [
+				{
+					"name": "REACTIVE - Get Book by ID (Book for Borrowing)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reactive/books/{{book_to_borrow_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reactive",
+								"books",
+								"{{book_to_borrow_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REACTIVE - Search Books by Title",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reactive/books/search?title=Book",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"reactive",
+								"books",
+								"search"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "Book"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Cleanup (Librarian)",
+			"item": [
+				{
+					"name": "LIBRARIAN - Delete 'Book for Deletion'",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/books/{{book_to_delete_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"books",
+								"{{book_to_delete_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LIBRARIAN - Delete Patron User (After all tests)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{librarian_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{patron_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{patron_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "librarian_token",
+			"value": ""
+		},
+		{
+			"key": "patron_token",
+			"value": ""
+		},
+		{
+			"key": "librarian_id",
+			"value": ""
+		},
+		{
+			"key": "patron_id",
+			"value": ""
+		},
+		{
+			"key": "book_to_borrow_id",
+			"value": ""
+		},
+		{
+			"key": "book_to_fine_id",
+			"value": ""
+		},
+		{
+			"key": "book_to_delete_id",
+			"value": ""
+		},
+		{
+			"key": "book_for_reservation_id",
+			"value": ""
+		},
+		{
+			"key": "borrowing_record_id_borrow",
+			"value": ""
+		},
+		{
+			"key": "borrowing_record_id_fine",
+			"value": ""
+		},
+		{
+			"key": "reservation_id",
+			"value": ""
+		},
+		{
+			"key": "fine_id_for_book_fine",
+			"value": ""
+		},
+		{
+			"key": "generic_isbn_prefix",
+			"value": "9783161"
+		},
+		{
+			"key": "librarian_username",
+			"value": "libsuperadmin"
+		},
+		{
+			"key": "librarian_password",
+			"value": "LibSecurePass123!"
+		},
+		{
+			"key": "librarian_email",
+			"value": "libsuperadmin@example.com"
+		},
+		{
+			"key": "librarian_fullname",
+			"value": "Library Super Admin"
+		},
+		{
+			"key": "patron_username",
+			"value": "patronjane"
+		},
+		{
+			"key": "patron_password",
+			"value": "PatronPass123!"
+		},
+		{
+			"key": "patron_email",
+			"value": "patron.jane@example.com"
+		},
+		{
+			"key": "patron_fullname",
+			"value": "Jane Doe"
+		},
+		{
+			"key": "fine_book_due_date_past",
+			"value": ""
+		},
+		{
+			"key": "book_to_borrow_title",
+			"value": "The Borrowable Book v2"
+		},
+		{
+			"key": "book_to_fine_title",
+			"value": "The Overdue Fine Book v2"
+		},
+		{
+			"key": "book_to_delete_title",
+			"value": "The Deletable Book v2"
+		},
+		{
+			"key": "book_for_reservation_title",
+			"value": "The Reservable Book v2"
+		},
+		{
+			"key": "borrowing_record_id_for_reservation_book",
+			"value": ""
+		}
+	]
+}
